@@ -1,0 +1,997 @@
+# Data-to-Viz Benzeri Profesyonel Veri Görselleştirme Rehberi
+
+[data-to-viz.com](https://www.data-to-viz.com/#area) sitesini inceledim. Karar ağacı yapısı, grafik kategorileri ve interaktif yapısını baz alarak sana çok daha çekici, modern ve eksiksiz bir HTML sayfası yazıyorum.
+
+```html
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veri Görselleştirme Rehberi | mdurular</title>
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #4B44CC;
+            --secondary: #FF6584;
+            --accent: #43E97B;
+            --accent2: #38F9D7;
+            --dark: #0F0E17;
+            --dark2: #1A1A2E;
+            --card-bg: #16213E;
+            --card-hover: #1F2D50;
+            --text: #E8E8F0;
+            --text-muted: #8888AA;
+            --border: rgba(108,99,255,0.25);
+            --glass: rgba(255,255,255,0.05);
+            --shadow: 0 8px 32px rgba(108,99,255,0.18);
+
+            /* Kategori renkleri */
+            --num-color: #6C63FF;
+            --cat-color: #FF6584;
+            --time-color: #43E97B;
+            --map-color: #F7971E;
+            --net-color: #A18CD1;
+            --rel-color: #38F9D7;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--dark2); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+        /* ===== NAVBAR ===== */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: rgba(15,14,23,0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 64px;
+        }
+        .nav-logo {
+            font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--primary), var(--accent2));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+        .nav-links a {
+            color: var(--text-muted); text-decoration: none; font-size: 0.9rem;
+            font-weight: 500; transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--primary); }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 6rem 2rem 4rem;
+            position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108,99,255,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 80% 80%, rgba(67,233,123,0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 20% 70%, rgba(255,101,132,0.10) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        /* Floating orbs */
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(60px);
+            pointer-events: none; animation: floatOrb 8s ease-in-out infinite;
+        }
+        .orb1 { width: 400px; height: 400px; background: rgba(108,99,255,0.12); top: -100px; left: -100px; animation-delay: 0s; }
+        .orb2 { width: 300px; height: 300px; background: rgba(67,233,123,0.08); bottom: 0; right: -50px; animation-delay: -3s; }
+        .orb3 { width: 200px; height: 200px; background: rgba(255,101,132,0.10); top: 40%; left: 60%; animation-delay: -5s; }
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(20px, -30px) scale(1.05); }
+            66% { transform: translate(-15px, 20px) scale(0.95); }
+        }
+
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: var(--glass); border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            padding: 0.4rem 1rem; border-radius: 50px;
+            font-size: 0.8rem; color: var(--accent2); letter-spacing: 1px;
+            text-transform: uppercase; font-weight: 600; margin-bottom: 1.5rem;
+        }
+        .hero-badge::before { content: '✦'; animation: spin 4s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 900; letter-spacing: -2px; line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--primary), var(--accent2), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 1.2rem; color: var(--text-muted); max-width: 600px;
+            margin: 0 auto 2.5rem; line-height: 1.8;
+        }
+        .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+        .btn {
+            padding: 0.85rem 2rem; border-radius: 50px; font-weight: 700;
+            font-size: 0.95rem; cursor: pointer; transition: all 0.3s; text-decoration: none;
+            border: none; display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108,99,255,0.5); }
+        .btn-outline {
+            background: transparent; color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex; gap: 3rem; flex-wrap: wrap; justify-content: center;
+            margin-top: 4rem; padding-top: 3rem;
+            border-top: 1px solid var(--border);
+            width: 100%; max-width: 700px;
+        }
+        .stat { text-align: center; }
+        .stat-num {
+            font-size: 2rem; font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent2));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* ===== SECTION HEADERS ===== */
+        .section { padding: 5rem 2rem; max-width: 1400px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 3rem; }
+        .section-tag {
+            display: inline-block;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+        .section-title { font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 800; margin-bottom: 1rem; }
+        .section-desc { color: var(--text-muted); max-width: 550px; margin: 0 auto; font-size: 1rem; }
+
+        /* ===== KARAR AĞACI ===== */
+        #karar-agaci { background: var(--dark2); padding: 5rem 0; }
+        #karar-agaci .section { padding: 3rem 2rem; }
+
+        .decision-tree {
+            display: flex; flex-direction: column; align-items: center; gap: 0;
+        }
+
+        /* Adım Göstergesi */
+        .step-indicator {
+            display: flex; gap: 0; margin-bottom: 3rem; position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute; top: 20px; left: 0; right: 0; height: 2px;
+            background: var(--border); z-index: 0;
+        }
+        .step-item {
+            display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+            flex: 1; z-index: 1; cursor: pointer; transition: all 0.3s;
+        }
+        .step-circle {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--card-bg); border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 700; color: var(--text-muted);
+            transition: all 0.3s;
+        }
+        .step-item.active .step-circle {
+            background: var(--primary); border-color: var(--primary);
+            color: white; box-shadow: 0 0 20px rgba(108,99,255,0.5);
+        }
+        .step-item.done .step-circle {
+            background: var(--accent); border-color: var(--accent); color: var(--dark);
+        }
+        .step-item.active .step-label { color: var(--primary); }
+        .step-label { font-size: 0.75rem; color: var(--text-muted); text-align: center; font-weight: 500; }
+
+        /* Soru kutusu */
+        .question-box {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 20px; padding: 2.5rem; text-align: center;
+            max-width: 800px; width: 100%;
+            box-shadow: var(--shadow);
+            position: relative; overflow: hidden;
+        }
+        .question-box::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent2));
+        }
+        .question-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .question-text {
+            font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem;
+            line-height: 1.4;
+        }
+        .choices-grid {
+            display: grid; gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+        .choice-btn {
+            background: var(--glass); border: 1.5px solid var(--border);
+            border-radius: 12px; padding: 1rem 1.2rem;
+            cursor: pointer; transition: all 0.25s;
+            text-align: left; color: var(--text);
+        }
+        .choice-btn:hover {
+            border-color: var(--primary);
+            background: rgba(108,99,255,0.1);
+            transform: translateY(-2px);
+        }
+        .choice-icon { font-size: 1.8rem; margin-bottom: 0.5rem; display: block; }
+        .choice-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .choice-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
+
+        /* Sonuç kartları */
+        .result-container { max-width: 1200px; width: 100%; }
+        .result-header {
+            text-align: center; margin-bottom: 2rem;
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 1.5rem;
+        }
+        .result-path {
+            display: flex; align-items: center; gap: 0.5rem; justify-content: center;
+            flex-wrap: wrap; margin-bottom: 1rem;
+        }
+        .path-badge {
+            background: rgba(108,99,255,0.15); border: 1px solid var(--primary);
+            color: var(--primary); padding: 0.25rem 0.75rem; border-radius: 50px;
+            font-size: 0.8rem; font-weight: 600;
+        }
+        .path-arrow { color: var(--text-muted); }
+        .result-title { font-size: 1.4rem; font-weight: 700; }
+        .result-desc { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem; }
+
+        .charts-result-grid {
+            display: grid; gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        }
+
+        /* Reset butonu */
+        .tree-controls { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; }
+        .btn-small {
+            padding: 0.6rem 1.5rem; border-radius: 50px; font-weight: 600;
+            font-size: 0.85rem; cursor: pointer; transition: all 0.25s; border: none;
+        }
+        .btn-reset {
+            background: rgba(255,101,132,0.15); color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+        .btn-reset:hover { background: rgba(255,101,132,0.25); transform: translateY(-1px); }
+        .btn-back {
+            background: var(--glass); color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        .btn-back:hover { color: var(--text); border-color: var(--text-muted); transform: translateY(-1px); }
+
+        /* ===== GRAFIK KARTLARİ ===== */
+        #grafikler { padding: 5rem 0; }
+        #grafikler .section { padding: 3rem 2rem; }
+
+        /* Filtre butonları */
+        .filter-bar {
+            display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
+            margin-bottom: 3rem;
+        }
+        .filter-btn {
+            padding: 0.5rem 1.25rem; border-radius: 50px; font-size: 0.85rem;
+            font-weight: 600; cursor: pointer; transition: all 0.25s;
+            border: 1.5px solid var(--border); background: transparent; color: var(--text-muted);
+        }
+        .filter-btn:hover, .filter-btn.active {
+            transform: translateY(-2px);
+        }
+        .filter-btn[data-filter="all"].active { background: var(--primary); border-color: var(--primary); color: white; }
+        .filter-btn[data-filter="numeric"].active { background: var(--num-color); border-color: var(--num-color); color: white; }
+        .filter-btn[data-filter="categoric"].active { background: var(--cat-color); border-color: var(--cat-color); color: white; }
+        .filter-btn[data-filter="time"].active { background: var(--time-color); border-color: var(--time-color); color: var(--dark); }
+        .filter-btn[data-filter="map"].active { background: var(--map-color); border-color: var(--map-color); color: white; }
+        .filter-btn[data-filter="network"].active { background: var(--net-color); border-color: var(--net-color); color: white; }
+        .filter-btn[data-filter="relation"].active { background: var(--rel-color); border-color: var(--rel-color); color: var(--dark); }
+
+        /* Grafik Grid */
+        .charts-grid {
+            display: grid; gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+
+        .chart-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 1.5rem; cursor: pointer;
+            transition: all 0.3s; position: relative; overflow: hidden;
+        }
+        .chart-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, var(--primary-color, var(--primary)), transparent);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .chart-card:hover { transform: translateY(-4px); border-color: var(--primary-color, var(--primary)); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+        .chart-card:hover::before { opacity: 0.05; }
+
+        .card-category {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; padding: 0.25rem 0.75rem;
+            border-radius: 50px; margin-bottom: 1rem;
+        }
+        .chart-preview {
+            height: 120px; border-radius: 10px; margin-bottom: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; background: var(--glass);
+            border: 1px solid var(--border); overflow: hidden;
+            position: relative;
+        }
+        .chart-preview svg { width: 100%; height: 100%; }
+
+        .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .card-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem; }
+        .card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .tag {
+            font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 50px;
+            background: var(--glass); border: 1px solid var(--border); color: var(--text-muted);
+        }
+        .card-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding-top: 1rem; border-top: 1px solid var(--border);
+        }
+        .difficulty {
+            display: flex; gap: 3px; align-items: center;
+        }
+        .difficulty-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+        }
+        .use-count { font-size: 0.75rem; color: var(--text-muted); }
+        .card-arrow {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--primary); display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; transition: transform 0.2s; opacity: 0;
+        }
+        .chart-card:hover .card-arrow { opacity: 1; transform: translateX(2px); }
+
+        /* Renk şemaları - kategori bazlı */
+        .cat-numeric { --primary-color: var(--num-color); }
+        .cat-categoric { --primary-color: var(--cat-color); }
+        .cat-time { --primary-color: var(--time-color); }
+        .cat-map { --primary-color: var(--map-color); }
+        .cat-network { --primary-color: var(--net-color); }
+        .cat-relation { --primary-color: var(--rel-color); }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 2rem; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal {
+            background: var(--dark2); border: 1px solid var(--border);
+            border-radius: 24px; max-width: 800px; width: 100%;
+            max-height: 90vh; overflow-y: auto;
+            transform: scale(0.95) translateY(20px); transition: transform 0.3s;
+        }
+        .modal-overlay.active .modal { transform: scale(1) translateY(0); }
+        .modal-header {
+            padding: 2rem 2rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: flex-start;
+            position: sticky; top: 0; background: var(--dark2); z-index: 10;
+        }
+        .modal-title { font-size: 1.5rem; font-weight: 800; }
+        .modal-close {
+            width: 36px; height: 36px; border-radius: 50%; background: var(--glass);
+            border: 1px solid var(--border); color: var(--text-muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; transition: all 0.2s; flex-shrink: 0;
+        }
+        .modal-close:hover { background: var(--secondary); border-color: var(--secondary); color: white; }
+        .modal-body { padding: 2rem; }
+        .modal-preview {
+            height: 200px; border-radius: 16px; background: var(--card-bg);
+            border: 1px solid var(--border); margin-bottom: 1.5rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 5rem; position: relative; overflow: hidden;
+        }
+        .modal-section { margin-bottom: 1.5rem; }
+        .modal-section h3 {
+            font-size: 0.8rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem;
+        }
+        .modal-section p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; }
+        .when-to-use { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .use-box {
+            background: var(--card-bg); border-radius: 10px; padding: 1rem;
+            border: 1px solid var(--border);
+        }
+        .use-box.good { border-color: rgba(67,233,123,0.3); }
+        .use-box.bad { border-color: rgba(255,101,132,0.3); }
+        .use-box h4 { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .use-box.good h4 { color: var(--accent); }
+        .use-box.bad h4 { color: var(--secondary); }
+        .use-box ul { list-style: none; }
+        .use-box ul li { font-size: 0.82rem; color: var(--text-muted); padding: 0.2rem 0; }
+        .use-box.good ul li::before { content: '✓ '; color: var(--accent); }
+        .use-box.bad ul li::before { content: '✗ '; color: var(--secondary); }
+        .mistakes-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .mistake-item {
+            display: flex; gap: 0.75rem; align-items: flex-start;
+            background: rgba(255,101,132,0.08); border: 1px solid rgba(255,101,132,0.2);
+            border-radius: 8px; padding: 0.75rem;
+        }
+        .mistake-item .icon { font-size: 1rem; flex-shrink: 0; }
+        .mistake-item p { font-size: 0.82rem; color: var(--text-muted); }
+        .code-links { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .code-link {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 8px; padding: 0.6rem 1rem;
+            color: var(--text); text-decoration: none; font-size: 0.82rem; font-weight: 600;
+            transition: all 0.2s;
+        }
+        .code-link:hover { border-color: var(--primary); color: var(--primary); }
+        .similar-charts { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .similar-chip {
+            background: var(--glass); border: 1px solid var(--border);
+            border-radius: 50px; padding: 0.3rem 0.8rem;
+            font-size: 0.8rem; color: var(--text-muted); cursor: pointer;
+            transition: all 0.2s;
+        }
+        .similar-chip:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* ===== HATA REHBER BÖLÜMÜ ===== */
+        #hatalar { background: var(--dark2); padding: 5rem 0; }
+        #hatalar .section { padding: 3rem 2rem; }
+        .mistakes-grid {
+            display: grid; gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+        .mistake-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 1.5rem; transition: all 0.3s;
+        }
+        .mistake-card:hover { transform: translateY(-3px); border-color: var(--secondary); box-shadow: 0 8px 30px rgba(255,101,132,0.15); }
+        .mistake-card .m-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+        .mistake-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .mistake-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+        .severity-badge {
+            display: inline-block; margin-top: 0.75rem;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 50px;
+        }
+        .sev-high { background: rgba(255,101,132,0.2); color: var(--secondary); }
+        .sev-med { background: rgba(247,151,30,0.2); color: #F7971E; }
+        .sev-low { background: rgba(67,233,123,0.2); color: var(--accent); }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: var(--dark2); border-top: 1px solid var(--border);
+            padding: 3rem 2rem; text-align: center;
+        }
+        .footer-logo {
+            font-size: 1.8rem; font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent2));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 0.5rem;
+        }
+        footer p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+        .footer-links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+
+        /* ===== SEARCH ===== */
+        .search-wrapper {
+            max-width: 500px; margin: 0 auto 3rem;
+            position: relative;
+        }
+        .search-input {
+            width: 100%; padding: 1rem 3rem 1rem 1.5rem;
+            background: var(--card-bg); border: 1.5px solid var(--border);
+            border-radius: 50px; color: var(--text); font-size: 0.95rem;
+            outline: none; transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--primary); }
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-icon {
+            position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); pointer-events: none;
+        }
+
+        /* ===== HIDDEN CLASS ===== */
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            nav { padding: 0 1rem; }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.2rem; }
+            .when-to-use { grid-template-columns: 1fr; }
+            .step-label { display: none; }
+            .stats-bar { gap: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <div class="nav-logo">DataViz Rehberi</div>
+    <ul class="nav-links">
+        <li><a href="#karar-agaci">Karar Ağacı</a></li>
+        <li><a href="#grafikler">Grafikler</a></li>
+        <li><a href="#hatalar">Yaygın Hatalar</a></li>
+        <li><a href="https://mdurular.github.io/" style="color:var(--accent2)">← Ana Sayfa</a></li>
+    </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+
+    <div class="hero-badge">✦ Veri Görselleştirme Rehberi</div>
+    <h1>Verini <span>Doğru Grafikle</span><br>Anlat</h1>
+    <p>Hangi grafik türünü kullanmalısın? Veri tipine göre en uygun görselleştirmeyi bul. 40+ grafik türü, hata rehberi ve interaktif karar ağacı.</p>
+    <div class="hero-buttons">
+        <a href="#karar-agaci" class="btn btn-primary">🌳 Karar Ağacını Kullan</a>
+        <a href="#grafikler" class="btn btn-outline">📊 Tüm Grafiklere Bak</a>
+    </div>
+    <div class="stats-bar">
+        <div class="stat">
+            <div class="stat-num">40+</div>
+            <div class="stat-label">Grafik Türü</div>
+        </div>
+        <div class="stat">
+            <div class="stat-num">6</div>
+            <div class="stat-label">Veri Kategorisi</div>
+        </div>
+        <div class="stat">
+            <div class="stat-num">15+</div>
+            <div class="stat-label">Yaygın Hata</div>
+        </div>
+        <div class="stat">
+            <div class="stat-num">100%</div>
+            <div class="stat-label">Ücretsiz</div>
+        </div>
+    </div>
+</section>
+
+<!-- KARAR AĞACI -->
+<section id="karar-agaci">
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag">🌳 İnteraktif Araç</span>
+            <h2 class="section-title">Karar Ağacı</h2>
+            <p class="section-desc">Verinin hakkında birkaç soruyu yanıtla, sana en uygun grafikleri önereceğiz.</p>
+        </div>
+
+        <!-- Adım Göstergesi -->
+        <div class="step-indicator" id="stepIndicator">
+            <div class="step-item active" id="step0">
+                <div class="step-circle">1</div>
+                <div class="step-label">Veri Tipi</div>
+            </div>
+            <div class="step-item" id="step1">
+                <div class="step-circle">2</div>
+                <div class="step-label">Alt Kategori</div>
+            </div>
+            <div class="step-item" id="step2">
+                <div class="step-circle">3</div>
+                <div class="step-label">Sonuç</div>
+            </div>
+        </div>
+
+        <div class="decision-tree" id="decisionTree">
+            <!-- Q0: Veri Tipi -->
+            <div class="question-box fade-in" id="q0">
+                <div class="question-icon">🗃️</div>
+                <div class="question-text">Elindeki veri ağırlıklı olarak ne tür?</div>
+                <div class="choices-grid">
+                    <button class="choice-btn" onclick="nextStep('numeric')">
+                        <span class="choice-icon">🔢</span>
+                        <div class="choice-title">Sayısal</div>
+                        <div class="choice-desc">Ölçüm, miktar, sürekli değerler</div>
+                    </button>
+                    <button class="choice-btn" onclick="nextStep('categoric')">
+                        <span class="choice-icon">🏷️</span>
+                        <div class="choice-title">Kategorik</div>
+                        <div class="choice-desc">Gruplar, etiketler, sınıflar</div>
+                    </button>
+                    <button class="choice-btn" onclick="nextStep('time')">
+                        <span class="choice-icon">📅</span>
+                        <div class="choice-title">Zaman Serisi</div>
+                        <div class="choice-desc">Zamanla değişen veriler</div>
+                    </button>
+                    <button class="choice-btn" onclick="nextStep('map')">
+                        <span class="choice-icon">🗺️</span>
+                        <div class="choice-title">Coğrafi</div>
+                        <div class="choice-desc">Koordinat, bölge, ülke verileri</div>
+                    </button>
+                    <button class="choice-btn" onclick="nextStep('network')">
+                        <span class="choice-icon">🕸️</span>
+                        <div class="choice-title">Ağ / İlişki</div>
+                        <div class="choice-desc">Bağlantılar, akışlar, hiyerarşi</div>
+                    </button>
+                    <button class="choice-btn" onclick="nextStep('relation')">
+                        <span class="choice-icon">🔄</span>
+                        <div class="choice-title">Çok Değişkenli</div>
+                        <div class="choice-desc">Birden fazla değişken arası ilişki</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Q1: Sayısal Alt -->
+            <div class="question-box fade-in hidden" id="q1-numeric">
+                <div class="question-icon">🔢</div>
+                <div class="question-text">Sayısal verin nasıl bir yapıda?</div>
+                <div class="choices-grid">
+                    <button class="choice-btn" onclick="showResult('distribution')">
+                        <span class="choice-icon">📊</span>
+                        <div class="choice-title">Tek Değişken</div>
+                        <div class="choice-desc">Bir değişkenin dağılımını görmek istiyorum</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('correlation')">
+                        <span class="choice-icon">↗️</span>
+                        <div class="choice-title">İki Değişken</div>
+                        <div class="choice-desc">İki sayısal değişken arasındaki ilişki</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('multivariate')">
+                        <span class="choice-icon">🌐</span>
+                        <div class="choice-title">3+ Değişken</div>
+                        <div class="choice-desc">Birçok değişkeni aynı anda görselleştirme</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('ranking')">
+                        <span class="choice-icon">🏆</span>
+                        <div class="choice-title">Sıralama</div>
+                        <div class="choice-desc">Değerleri büyükten küçüğe sıralamak</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Q1: Kategorik Alt -->
+            <div class="question-box fade-in hidden" id="q1-categoric">
+                <div class="question-icon">🏷️</div>
+                <div class="question-text">Kategorik verinle ne yapmak istiyorsun?</div>
+                <div class="choices-grid">
+                    <button class="choice-btn" onclick="showResult('part-to-whole')">
+                        <span class="choice-icon">🥧</span>
+                        <div class="choice-title">Parça-Bütün</div>
+                        <div class="choice-desc">Her kategorinin toplama oranı</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('comparison')">
+                        <span class="choice-icon">⚖️</span>
+                        <div class="choice-title">Karşılaştırma</div>
+                        <div class="choice-desc">Kategoriler arasında değer kıyası</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('hierarchy')">
+                        <span class="choice-icon">🌲</span>
+                        <div class="choice-title">Hiyerarşi</div>
+                        <div class="choice-desc">İç içe kategoriler, ağaç yapısı</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('flow')">
+                        <span class="choice-icon">🌊</span>
+                        <div class="choice-title">Akış / Geçiş</div>
+                        <div class="choice-desc">Kategoriler arası geçişler, akışlar</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Q1: Zaman Alt -->
+            <div class="question-box fade-in hidden" id="q1-time">
+                <div class="question-icon">📅</div>
+                <div class="question-text">Zaman verisini nasıl göstermek istiyorsun?</div>
+                <div class="choices-grid">
+                    <button class="choice-btn" onclick="showResult('trend')">
+                        <span class="choice-icon">📈</span>
+                        <div class="choice-title">Trend / Eğilim</div>
+                        <div class="choice-desc">Zamanla genel gidiş yönü</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('evolution')">
+                        <span class="choice-icon">🔀</span>
+                        <div class="choice-title">Bileşik Değişim</div>
+                        <div class="choice-desc">Birden fazla serinin evrimi</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('cyclical')">
+                        <span class="choice-icon">🔁</span>
+                        <div class="choice-title">Döngüsel Örüntü</div>
+                        <div class="choice-desc">Günlük/haftalık/yıllık döngüler</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Q1: Harita Alt -->
+            <div class="question-box fade-in hidden" id="q1-map">
+                <div class="question-icon">🗺️</div>
+                <div class="question-text">Coğrafi verinle ne yapmak istiyorsun?</div>
+                <div class="choices-grid">
+                    <button class="choice-btn" onclick="showResult('choropleth')">
+                        <span class="choice-icon">🎨</span>
+                        <div class="choice-title">Bölge Renklendirme</div>
+                        <div class="choice-desc">Ülke/il bazlı değer yoğunluğu</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('bubble-map')">
+                        <span class="choice-icon">🫧</span>
+                        <div class="choice-title">Nokta / Baloncuk</div>
+                        <div class="choice-desc">Koordinat noktalarında büyüklük</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('connection-map')">
+                        <span class="choice-icon">✈️</span>
+                        <div class="choice-title">Bağlantı Haritası</div>
+                        <div class="choice-desc">Noktalar arası rota/akış</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Q1: Ağ Alt -->
+            <div class="question-box fade-in hidden" id="q1-network">
+                <div class="question-icon">🕸️</div>
+                <div class="question-text">Ağ yapın nasıl görünüyor?</div>
+                <div class="choices-grid">
+                    <button class="choice-btn" onclick="showResult('network-graph')">
+                        <span class="choice-icon">🕸️</span>
+                        <div class="choice-title">Serbest Ağ</div>
+                        <div class="choice-desc">Düğümler ve kenarlardan oluşan genel ağ</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('hierarchy-net')">
+                        <span class="choice-icon">🌳</span>
+                        <div class="choice-title">Hiyerarşik Ağ</div>
+                        <div class="choice-desc">Ağaç, org şeması yapısı</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('flow')">
+                        <span class="choice-icon">🌊</span>
+                        <div class="choice-title">Akış Diyagramı</div>
+                        <div class="choice-desc">Kaynaktan hedefe akışlar</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Q1: Çok Değişkenli Alt -->
+            <div class="question-box fade-in hidden" id="q1-relation">
+                <div class="question-icon">🔄</div>
+                <div class="question-text">Kaç değişken var ve ne göstermek istiyorsun?</div>
+                <div class="choices-grid">
+                    <button class="choice-btn" onclick="showResult('correlation-matrix')">
+                        <span class="choice-icon">🟦</span>
+                        <div class="choice-title">Korelasyon Matrisi</div>
+                        <div class="choice-desc">Tüm değişkenler arası ilişki özeti</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('parallel')">
+                        <span class="choice-icon">〰️</span>
+                        <div class="choice-title">Paralel Koordinat</div>
+                        <div class="choice-desc">Her gözlemin çoklu boyut profili</div>
+                    </button>
+                    <button class="choice-btn" onclick="showResult('radar')">
+                        <span class="choice-icon">🕷️</span>
+                        <div class="choice-title">Radar Grafiği</div>
+                        <div class="choice-desc">Birkaç boyutta profil karşılaştırma</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SONUÇ ALANI -->
+            <div class="result-container hidden fade-in" id="resultContainer">
+                <div class="result-header">
+                    <div class="result-path" id="resultPath"></div>
+                    <div class="result-title" id="resultTitle">Önerilen Grafik Türleri</div>
+                    <div class="result-desc" id="resultDesc"></div>
+                </div>
+                <div class="charts-result-grid" id="resultGrid"></div>
+                <div class="tree-controls">
+                    <button class="btn-small btn-back" onclick="goBack()">← Geri Dön</button>
+                    <button class="btn-small btn-reset" onclick="resetTree()">🔄 Baştan Başla</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- TÜM GRAFİKLER -->
+<section id="grafikler">
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag">📊 Referans Kütüphanesi</span>
+            <h2 class="section-title">Tüm Grafik Türleri</h2>
+            <p class="section-desc">40+ grafik türü. Filtrele, ara, detaylarını öğren.</p>
+        </div>
+
+        <!-- Arama -->
+        <div class="search-wrapper">
+            <input type="text" class="search-input" id="searchInput" placeholder="Grafik ara... (örn: bar, scatter, harita)">
+            <span class="search-icon">🔍</span>
+        </div>
+
+        <!-- Filtreler -->
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all" onclick="filterCharts('all', this)">Tümü</button>
+            <button class="filter-btn" data-filter="numeric" onclick="filterCharts('numeric', this)">🔢 Sayısal</button>
+            <button class="filter-btn" data-filter="categoric" onclick="filterCharts('categoric', this)">🏷️ Kategorik</button>
+            <button class="filter-btn" data-filter="time" onclick="filterCharts('time', this)">📅 Zaman</button>
+            <button class="filter-btn" data-filter="map" onclick="filterCharts('map', this)">🗺️ Harita</button>
+            <button class="filter-btn" data-filter="network" onclick="filterCharts('network', this)">🕸️ Ağ</button>
+            <button class="filter-btn" data-filter="relation" onclick="filterCharts('relation', this)">🔄 İlişki</button>
+        </div>
+
+        <!-- Grid -->
+        <div class="charts-grid" id="chartsGrid"></div>
+    </div>
+</section>
+
+<!-- YAYGIN HATALAR -->
+<section id="hatalar">
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag">⚠️ Uyarılar</span>
+            <h2 class="section-title">Yaygın Görselleştirme Hataları</h2>
+            <p class="section-desc">En sık yapılan hatalar ve bunlardan nasıl kaçınılacağı.</p>
+        </div>
+        <div class="mistakes-grid" id="mistakesGrid"></div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-logo">DataViz Rehberi</div>
+    <p>Veri görselleştirme kararlarınız için kapsamlı bir başvuru kaynağı.</p>
+    <div class="footer-links">
+        <a href="#top">↑ Başa Dön</a>
+        <a href="#karar-agaci">Karar Ağacı</a>
+        <a href="#grafikler">Grafikler</a>
+        <a href="#hatalar">Hatalar</a>
+        <a href="https://mdurular.github.io/">Ana Sayfa</a>
+        <a href="https://www.data-to-viz.com/#area" target="_blank">İlham Kaynağı</a>
+    </div>
+    <p style="margin-top:1.5rem; font-size:0.75rem;">© 2025 mdurular.github.io</p>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" id="modal">
+        <div class="modal-header">
+            <div>
+                <div class="card-category" id="modalCategory"></div>
+                <div class="modal-title" id="modalTitle"></div>
+            </div>
+            <button class="modal-close" onclick="closeModalDirect()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-preview" id="modalPreview"></div>
+            <div class="modal-section">
+                <h3>📖 Açıklama</h3>
+                <p id="modalDesc"></p>
+            </div>
+            <div class="modal-section">
+                <h3>🎯 Ne Zaman Kullan?</h3>
+                <div class="when-to-use">
+                    <div class="use-box good">
+                        <h4>✓ Kullan</h4>
+                        <ul id="modalGood"></ul>
+                    </div>
+                    <div class="use-box bad">
+                        <h4>✗ Kullanma</h4>
+                        <ul id="modalBad"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-section">
+                <h3>⚠️ Dikkat Et</h3>
+                <div class="mistakes-list" id="modalMistakes"></div>
+            </div>
+            <div class="modal-section">
+                <h3>💻 Kod Örnekleri</h3>
+                <div class="code-links" id="modalCode"></div>
+            </div>
+            <div class="modal-section">
+                <h3>🔗 Benzer Grafikler</h3>
+                <div class="similar-charts" id="modalSimilar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+//  VERİ: Tüm grafik tanımları
+// ============================================================
+const CHARTS = [
+  // ─── SAYISAL ───────────────────────────────────────────────
+  {
+    id: "histogram",
+    title: "Histogram",
+    category: "numeric",
+    categoryLabel: "Sayısal",
+    emoji: "📊",
+    svgPreview: `<svg viewBox="0 0 160 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="70" width="18" height="25" fill="#6C63FF" opacity="0.8" rx="2"/>
+      <rect x="32" y="45" width="18" height="50" fill="#6C63FF" opacity="0.9" rx="2"/>
+      <rect x="54" y="25" width="18" height="70" fill="#6C63FF" rx="2"/>
+      <rect x="76" y="35" width="18" height="60" fill="#6C63FF" opacity="0.9" rx="2"/>
+      <rect x="98" y="55" width="18" height="40" fill="#6C63FF" opacity="0.8" rx="2"/>
+      <rect x="120" y="75" width="18" height="20" fill="#6C63FF" opacity="0.6" rx="2"/>
+    </svg>`,
+    desc: "Sayısal bir değişkenin dağılımını gösterir. Değerleri aralıklara bölerek her aralıkta kaç gözlem düştüğünü görselleştirir.",
+    tags: ["dağılım", "tek değişken", "frekans"],
+    good: ["Tek sayısal değişkenin dağılımı", "Çarpıklık ve mod tespiti", "Aykırı değerleri bulmak"],
+    bad: ["Çok az veri noktası varsa", "Kategorik değişkenler için", "Zaman serisi gösterimi"],
+    mistakes: [
+      { icon: "📏", text: "Yanlış aralık (bin) genişliği seçmek dağılımı bozar. Farklı değerleri deneyin." },
+      { icon: "0️⃣", text: "Y ekseninin sıfırdan başlaması gerekir, aksi hâlde büyüklük algısı bozulur." }
+    ],
+    code: [
+      { lang: "Python", url: "https://python-graph-gallery.com/histogram/" },
+      { lang: "R", url: "https://www.r-graph-gallery.com/histogram.html" }
+    ],
+    similar: ["density", "boxplot", "violin"],
+    difficulty: 1,
+    results: ["distribution"]
+  },
+  {
+    id: "density",
+    title: "Yoğunluk Grafiği",
+    category: "numeric",
+    categoryLabel: "Sayısal",
+    emoji: "〰️",
+    svgPreview: `<svg viewBox="0 0 160 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="densGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#6C63FF" stop-opacity="0.6"/>
+          <stop offset="100%" stop-color="#6C63FF" stop-opacity="0.05"/>
+        </linearGradient>
+      </defs>
+      <path d="M10 90 Q30 88 50 60 Q70 20 90 30 Q110 40 130 70 Q145 85 155 90 Z" fill="url(#densGrad)"/>
+      <path d="M10 90 Q30 88 50 60 Q70 20 90 30 Q110 40 130 70 Q145 85 155 90" fill="none" stroke="#6C63FF" stroke-width="2.5"/>
+    </svg>`,
+    desc: "Histogram'ın düzleştirilmiş versiyonudur. Çekirdek yoğunluk tahmini (KDE) kullanarak olasılık dağılımını sürekli bir eğri olarak gösterir.",
+    tags: ["dağılım", "KDE", "sürekli"],
+    good: ["Dağılım şeklini net görmek", "Birden fazla grubu karşılaştırmak", "Pürüzsüz dağılım temsili"],
+    bad: ["Çok az veri noktası", "Ayrık (discrete) değişkenler", "Kesin frekans okumak"],
+    mistakes: [
+      { icon: "🎚️", text: "Bant genişliği (bandwidth) dağılım şeklini dramatik şekilde etkiler." },
+      { icon: "📐", text: "Kernel tahminleri gerçekte olmayan kuyruklara yol açabilir." }
+    ],
+    code: [
+      { lang: "Python", url: "https://python-graph-gallery.com/density-plot/" },
+      { lang: "R", url: "https://www.r-graph-gallery.com/density-plot.html" }
+    ],
+    similar: ["histogram", "violin", "ridgeline"],
+    difficulty: 1,
+    results: ["distribution"]
+  },
+  {
+    id: "boxplot",
+    title: "Boxplot",
+    category: "numeric",
+    categoryLabel: "Sayısal",
+    emoji: "📦",
+    svgPreview: `<svg viewBox="0 0 160 100" xmlns="http://www.w3.org/2000/svg">
+      <line x1="80" y1
